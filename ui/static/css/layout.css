@@ -1,0 +1,222 @@
+#main-content {
+    margin-left: 300px;
+    margin-top: 90px;
+    height: calc(100vh - 90px);
+    width: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 90px;
+    transform: none;
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(12px);
+    padding: 0.5rem 2rem;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 1000;
+    box-shadow: var(--shadow-card);
+    box-sizing: border-box;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.system-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    align-items: center;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.system-stats::-webkit-scrollbar {
+    display: none;
+}
+
+.stat-badge {
+    background: var(--bg);
+    border: 1px solid var(--panel-border);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'Fira Code', monospace;
+    white-space: nowrap;
+    color: var(--text-primary);
+}
+
+.stat-badge span {
+    color: var(--accent);
+    margin-right: 6px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand .icon {
+    background: linear-gradient(135deg, var(--accent), #3b82f6);
+    -webkit-background-clip: text;
+    color: transparent;
+    font-size: 1.2rem;
+}
+
+.logo-text {
+    font-family: 'Fira Code', monospace;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+}
+
+.logo-text .version {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    font-weight: 500;
+    letter-spacing: normal;
+}
+
+.sidebar {
+    width: 300px;
+    min-width: 150px;
+    max-width: 600px;
+    position: fixed;
+    left: 0;
+    top: 90px;
+    height: calc(100vh - 90px);
+    background: #1e1e1e;
+    color: #ddd;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    padding: 15px 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    z-index: 900;
+    box-sizing: border-box;
+}
+
+#sidebar-resizer {
+    width: 6px;
+    height: 100%;
+    background: transparent;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: col-resize;
+    transition: background 0.2s;
+}
+
+#sidebar-resizer:hover, #sidebar-resizer:active { background: #007acc; }
+
+#file-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    flex: 1;
+    overflow-y: auto; 
+    overflow-x: auto; 
+    font-size: 0.85rem;
+    scrollbar-width: auto;
+    scrollbar-color: #3f444e transparent;
+}
+
+#file-list::-webkit-scrollbar {
+    width: 12px; 
+    height: 12px;
+}
+
+#file-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#file-list::-webkit-scrollbar-thumb {
+    background-color: #3f444e;
+    border-radius: 20px;
+    border: 3px solid transparent; 
+    background-clip: content-box;
+    transition: background-color 0.2s;
+}
+
+#file-list::-webkit-scrollbar-thumb:hover {
+    background-color: var(--accent);
+}
+
+#file-list li {
+    white-space: nowrap;
+    display: block;
+    min-width: max-content;
+    padding-right: 20px;
+    transition: background 0.2s;
+}
+
+#file-list li:hover { background: #2d2d2d; }
+
+.folder-node { font-weight: 600; color: #5ab3f0; height: 28px; display: flex; align-items: center; }
+.file-node { height: 24px; display: flex; align-items: center; color: #bbb; }
+
+.refresh-btn {
+    flex-shrink: 0; 
+    margin: 10px 15px;
+    padding: 8px;
+    background: var(--panel-border);
+    border: none;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.refresh-btn:hover {
+    background: #2d3748;
+    color: var(--text-primary);
+}
+
+#typing-indicator {
+    color: var(--accent);
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+    margin-left: 10px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-style: italic;
+}
+
+.spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--accent-dim);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

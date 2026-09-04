@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portable AI Lab | Knowledge Engine v1.2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/chat.css">
+    
+    <script src="/static/js/marked.min.js"></script>
+</head>
+
+<body>
+    <div id="library-sidebar" class="sidebar">
+        <div class="sidebar-header" style="padding: 0 15px;">
+            <h3>Knowledge Base</h3>
+            <span id="file-count" class="badge">0 files</span>
+        </div>
+        <ul id="file-list"></ul>
+        <button id="refresh-library-btn" class="refresh-btn">🔄 Refresh List</button>
+        <div id="sidebar-resizer"></div>
+    </div>
+
+    <div id="main-content">
+        <header>
+            <div class="header-top">
+                <div class="brand">
+                    <span class="icon">◆</span>
+                    <h1 class="logo-text">Portable Knowledge Engine<span class="version">v1.2</span></h1>
+                </div>
+                <div class="status">
+                    <button id="reset-btn" class="refresh-btn" style="border: 1px solid #ef4444; color: #ef4444; margin: 0;">Clear Memory</button>
+                    <div class="status-dot"></div>
+                </div>
+            </div>
+            <div id="system-stats" class="system-stats">
+            </div>
+        </header>
+
+        <div id="chat-container">
+            <div class="message-row ai-row">
+                <div class="avatar">L</div>
+                <div class="message-content">
+                    <div class="markdown-body">Welcome to your Portable Lab. Knowledge Base is online.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="footer-container">
+            <div id="typing-indicator">Analyzing local database...</div>
+            <div id="input-area">
+                <select id="category-select" title="Choose Expert Persona">
+                    <option value="auto">🪄 Auto</option>
+                    <option value="code">💻 Code</option>
+                    <option value="doc">📄 Docs</option>
+                </select>
+
+                <select id="mode-select" title="Search Behavior">
+                    <option value="hybrid">🌐 Hybrid</option>
+                    <option value="strict">🔒 Strict</option>
+                </select>
+
+                <input type="text" id="user-input" placeholder="Ask your data..." autocomplete="off">
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/static/js/main.js"></script>
+</body>
+</html>

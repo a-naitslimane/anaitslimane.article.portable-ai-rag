@@ -1,0 +1,17 @@
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+.venv/
+
+data/source_files/*
+data/vector_store/*
+
+ollama-configs/
+
+!data/**/.gitkeep
+
+.env
