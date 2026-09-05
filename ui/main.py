@@ -5,7 +5,9 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+import config
 from core.database import get_db_connection
+from core.ollama_utils import ensure_models
 
 from .routes import router
 
@@ -13,6 +15,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    ensure_models(config.EMBED_MODEL, config.LLM_GEN_MODEL)
     app.state.db = get_db_connection()
     yield
 

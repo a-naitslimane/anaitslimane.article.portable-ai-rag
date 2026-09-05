@@ -5,6 +5,8 @@ import sys
 
 import ollama
 
+from core.ollama_utils import ensure_models
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(current_dir)
 if root_dir not in sys.path:
@@ -17,11 +19,7 @@ from .processors import read_file_content
 
 
 def run_ingest():
-    try:
-        ollama.list()
-    except Exception as e:
-        print(f" Error: Ollama is not running or unreachable. Please start Ollama first.\nDetails: {e}")
-        sys.exit(1)
+    ensure_models(config.EMBED_MODEL, pull_if_missing=True)
     
     # Setup
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
@@ -91,9 +89,8 @@ def run_ingest():
         print(f"Syncing {len(to_index)} files using {config.EMBED_MODEL}...")
         payload = []
         
-        # Use values from config for 1,200-char strategy
-        c_size = getattr(config, 'CHUNK_SIZE', 1200)
-        c_overlap = getattr(config, 'CHUNK_OVERLAP', 200)
+        c_size = getattr(config, 'CHUNK_SIZE', 3500)
+        c_overlap = getattr(config, 'CHUNK_OVERLAP', 800)
 
         for idx, (f_path, r_path, info, mode) in enumerate(to_index):
             size_kb = round(info['size'] / 1024, 1)
@@ -119,11 +116,9 @@ def run_ingest():
                 for i, chunk in enumerate(chunks):
                     if len(chunks) > 3:
                         print(f"   ∟ Chunk {i+1}/{len(chunks)}...", end="\r")
-                        
-                    context = f"File: {r_path}\nMode: {mode}\n---\n{chunk}"
-                    
+                                            
                     try:
-                        resp = ollama.embeddings(model=config.EMBED_MODEL, prompt=context)
+                        resp = ollama.embeddings(model=config.EMBED_MODEL, prompt=chunk)
                         vector = resp['embedding']
                         
                         payload.append({
