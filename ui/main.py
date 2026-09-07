@@ -15,7 +15,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    ensure_models(config.EMBED_MODEL, config.LLM_GEN_MODEL)
+    ensure_models(config.EMBED_MODEL, *config.LLM_GENERATION_MODELS.values())
     app.state.db = get_db_connection()
     yield
 

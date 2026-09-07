@@ -4,6 +4,7 @@ from fastapi.responses import StreamingResponse
 from ollama import AsyncClient
 
 import config
+from core.vectors import normalize
 
 from ..models import QueryRequest
 from .code import get_final_top_k
@@ -18,20 +19,32 @@ from .prompts import (
 
 
 async def is_conversational(text: str, client: AsyncClient) -> bool:
+    cleaned_text = text.strip()
+    prompt = PROMPT_CLASSIFIER.format(question=cleaned_text)
+
     try:
-        resp = await client.generate(model=config.LLM_GEN_MODEL, prompt=PROMPT_CLASSIFIER.format(question=text))
-        return "CONVERSATIONAL" in resp["response"].upper()
+        resp = await client.generate(
+            model=config.LLM_GENERATION_MODELS["auto"],
+            prompt=prompt,
+            format="json",
+            options={"temperature": 0.0, "num_predict": 30}
+        )
+        data = json.loads(resp["response"])
+        return bool(data.get("is_conversational", False))
     except Exception:
         return False
 
 
-async def stream_response(client: AsyncClient, prompt: str, sources: list) -> StreamingResponse:
+async def stream_response(client: AsyncClient, prompt: str, sources: list, model: str = None) -> StreamingResponse:
+    curr_llm_gen_model = model or config.LLM_GENERATION_MODELS["auto"]
+
     async def generator():
-        yield json.dumps({"sources": sources}) + "\n---\n"
+        yield json.dumps({"sources": sources, "llm_model": curr_llm_gen_model}) + "\n---\n"
         try:
             buffer = ""
+
             async for fragment in await client.generate(
-                model=config.LLM_GEN_MODEL,
+                model=curr_llm_gen_model,
                 prompt=prompt,
                 stream=True,
                 options={"num_ctx": 4096},
@@ -52,15 +65,18 @@ async def stream_response(client: AsyncClient, prompt: str, sources: list) -> St
 async def execute(request: QueryRequest, client: AsyncClient, table) -> StreamingResponse:
     if await is_conversational(request.question, client):
         prompt = PROMPT_CONVERSATIONAL.format(question=request.question)
-        return await stream_response(client, prompt, sources=[])
+        return await stream_response(client, prompt, sources=[], model=config.LLM_GENERATION_MODELS["auto"])
 
     final_top_k = get_final_top_k(request.top_k, request.question)
     active = PERSONAS.get(request.category, PERSONAS["auto"])
 
     resp = await client.embeddings(model=config.EMBED_MODEL, prompt=request.question)
-    query_vec = resp["embedding"]
+    query_vec = normalize(resp["embedding"])
 
-    raw_results = table.search(query_vec).limit(final_top_k).to_list()
+    search = table.search(query_vec)
+    if active.get("filter"):
+        search = search.where(active["filter"])
+    raw_results = search.limit(final_top_k).to_list()
 
     distance_threshold = getattr(config, "DISTANCE_THRESHOLD", 1.2)
     results = [r for r in raw_results if r.get("_distance", float("inf")) < distance_threshold]
@@ -75,4 +91,5 @@ async def execute(request: QueryRequest, client: AsyncClient, table) -> Streamin
     behavior = PROMPT_BEHAVIOR_STRICT if request.mode == "strict" else PROMPT_BEHAVIOR_HYBRID
     prompt = construct_audit_prompt(active, behavior, sources, context, request.question)
 
-    return await stream_response(client, prompt, sources)
+    llm_model = config.LLM_GENERATION_MODELS.get(request.category, config.LLM_GENERATION_MODELS["auto"])
+    return await stream_response(client, prompt, sources, model=llm_model)

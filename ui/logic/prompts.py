@@ -23,14 +23,9 @@ PROMPT_CONVERSATIONAL = """You are a helpful assistant. Respond naturally and br
 
 User: {question}"""
 
-PROMPT_CLASSIFIER = """Classify the following user message as either CONVERSATIONAL or TECHNICAL.
+PROMPT_CLASSIFIER = """Determine if the input is general small talk/greeting (true) or a request requiring a technical response or database search (false). Output ONLY valid JSON containing a single boolean key 'is_conversational'.
 
-CONVERSATIONAL: greetings, small talk, expressions of thanks, questions about your capabilities, general non-technical questions.
-TECHNICAL: any question about code, files, architecture, documentation, or a specific technical topic requiring knowledge base lookup.
-
-Reply with a single word: CONVERSATIONAL or TECHNICAL.
-
-Message: {question}"""
+Input: {question}"""
 
 
 def construct_audit_prompt(active, behavior, found_sources, context, question):
@@ -59,7 +54,8 @@ ROLE DIRECTIVE: {active["instruction"]}
 3. ZERO FABRICATION: Every filename, function name, variable, type, and logic statement must exist verbatim in your indexed memory. If it is not there, it does not exist.
 4. SOURCE ATTRIBUTION: Cite the source file for every claim: [filename.ext]. No citation means no claim.
 5. MANDATORY ABSTENTION: If your indexed memory does not contain sufficient information, output this exact sentence and stop: "My indexed knowledge base does not contain sufficient information for this query."
-6. CODE FORMATTING: All function names, variable names, class names, and inline code must be wrapped in backticks.
+6. CODE FORMATTING: All function names, variable names, class names, and inline code must be wrapped in backticks. When outputting full code snippets or examples, wrap them in standard Markdown code blocks matching the file's language (e.g., ```<language> ... ```).
+7. OUTPUT FORMAT: Render standard readable text and Markdown only. NEVER wrap your entire output in a raw JSON object or JSON array.
 
 === BEHAVIOR MODE ===
 {behavior}
@@ -77,6 +73,6 @@ Indexed sources retrieved: {found_sources}
 Lead immediately with the direct finding or answer.
 For single-fact answers: one sentence maximum.
 For multi-part answers: bullet points, one finding per bullet.
-For code issues: → [file.ext] `symbol`: precise description of the issue.
+For code issues or code snippets: → [file.ext] `symbol` or standard fenced code block.
 For comparisons: Expected | Found.
 Hard limit: three sentences per bullet point. No closing summary. No padding."""

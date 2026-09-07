@@ -27,7 +27,6 @@ def get_system_config():
         "db_path": config.DB_PATH,
         "embed_model": config.EMBED_MODEL,
         "embed_dim": config.EMBED_DIM,
-        "llm_model": config.LLM_GEN_MODEL,
         "chunk_size": config.CHUNK_SIZE,
         "chunk_overlap": config.CHUNK_OVERLAP,
         "top_k": config.TOP_K,

@@ -32,13 +32,23 @@ function insertAiPlaceholder() {
     return document.getElementById("ai-placeholder");
 }
 
-function resolveAiPlaceholder(placeholder, completeText, sources) {
+function resolveAiPlaceholder(placeholder, completeText, sources, llmModel) {
     const renderedContent = window.marked ? marked.parse(completeText) : completeText;
-    const sourcesHtml = sources.length > 0
-        ? `<div class="sources" style="font-size: 0.75rem; color: #9ca3af; margin-top: 10px; border-top: 1px solid #1f2937; padding-top: 5px;">🗂 Sources: ${sources.join(", ")}</div>`
-        : "";
+    
+    let footerHtml = "";
+    if (llmModel || sources.length > 0) {
+        footerHtml = `<div style="margin-top: 10px; border-top: 1px solid #1f2937; padding-top: 8px;">`;
+        if (llmModel) {
+            footerHtml += `<div style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 4px;">🧠 Model: <span style="color: #d1d5db;">${llmModel}</span></div>`;
+        }
+        if (sources.length > 0) {
+            footerHtml += `<div style="font-size: 0.75rem; color: #9ca3af;">🗂 Sources: ${sources.join(", ")}</div>`;
+        }
+        footerHtml += `</div>`;
+    }
+
     placeholder.querySelector(".message-content").innerHTML =
-        `<div class="markdown-body">${renderedContent}</div>${sourcesHtml}`;
+        `<div class="markdown-body">${renderedContent}</div>${footerHtml}`;
     placeholder.removeAttribute("id");
     container.scrollTop = container.scrollHeight;
 }
@@ -64,6 +74,7 @@ async function handleAsk() {
 
         let completeText = "";
         let sources = [];
+        let llmModel = null;
         let buffer = "";
         let metaProcessed = false;
 
@@ -77,9 +88,11 @@ async function handleAsk() {
                     try {
                         const meta = JSON.parse(rawMeta);
                         sources = meta.sources || [];
+                        llmModel = meta.llm_model || null;
                     }
                     catch (e) {
                         sources = [];
+                        llmModel = null;
                     }
                     
                     completeText += buffer.slice(separatorIndex + 5);
@@ -97,7 +110,7 @@ async function handleAsk() {
             }
         }
 
-        resolveAiPlaceholder(placeholder, completeText, sources);
+        resolveAiPlaceholder(placeholder, completeText, sources, llmModel);
     }
     catch (e) {
         placeholder.querySelector(".message-content").innerHTML =
@@ -120,7 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const statsContainer = document.getElementById("system-stats");
         if (statsContainer) {
             statsContainer.innerHTML = `
-                <div class="stat-badge"><span>MODEL</span>${data.llm_model}</div>
                 <div class="stat-badge"><span>SRC</span>${data.source_dir}</div>
                 <div class="stat-badge"><span>DB</span>${data.db_path}</div>
                 <div class="stat-badge"><span>EMBED</span>${data.embed_model} (${data.embed_dim}d)</div>

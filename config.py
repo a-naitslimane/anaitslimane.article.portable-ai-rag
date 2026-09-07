@@ -6,7 +6,11 @@ TABLE_NAME = "knowledge_base"
 EMBED_MODEL = "snowflake-arctic-embed:m-long"
 EMBED_DIM = 768
 
-LLM_GEN_MODEL = "stable-coder"
+LLM_GENERATION_MODELS = {
+    "code": "deepseek-coder-v2:16b-lite-instruct-q5_K_M",
+    "doc":  "mistral-nemo:12b",
+    "auto": "mistral-nemo:12b",
+}
 
 CHUNK_SIZE = 3500
 CHUNK_OVERLAP = 800

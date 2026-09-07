@@ -6,6 +6,7 @@ import sys
 import ollama
 
 from core.ollama_utils import ensure_models
+from core.vectors import normalize
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(current_dir)
@@ -119,7 +120,7 @@ def run_ingest():
                                             
                     try:
                         resp = ollama.embeddings(model=config.EMBED_MODEL, prompt=chunk)
-                        vector = resp['embedding']
+                        vector = normalize(resp['embedding'])
                         
                         payload.append({
                             "vector": vector, 
