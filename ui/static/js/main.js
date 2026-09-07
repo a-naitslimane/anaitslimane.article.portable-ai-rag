@@ -37,7 +37,7 @@ function resolveAiPlaceholder(placeholder, completeText, sources, llmModel) {
     
     let footerHtml = "";
     if (llmModel || sources.length > 0) {
-        footerHtml = `<div style="margin-top: 10px; border-top: 1px solid #1f2937; padding-top: 8px;">`;
+        footerHtml = `<div style="margin-top: 10px; border-top: 1px solid #1f2937; padding-top: 8px; word-break: break-all;">`;
         if (llmModel) {
             footerHtml += `<div style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 4px;">🧠 Model: <span style="color: #d1d5db;">${llmModel}</span></div>`;
         }
