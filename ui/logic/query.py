@@ -14,7 +14,8 @@ from .prompts import (
     PROMPT_BEHAVIOR_STRICT,
     PROMPT_CLASSIFIER,
     PROMPT_CONVERSATIONAL,
-    construct_audit_prompt,
+    construct_system_message,
+    construct_user_message,
 )
 
 
@@ -35,7 +36,7 @@ async def is_conversational(text: str, client: AsyncClient) -> bool:
         return False
 
 
-async def stream_response(client: AsyncClient, prompt: str, sources: list, model: str = None) -> StreamingResponse:
+async def stream_response(client: AsyncClient, messages: list, sources: list, model: str = None) -> StreamingResponse:
     curr_llm_gen_model = model or config.LLM_GENERATION_MODELS["auto"]
 
     async def generator():
@@ -43,14 +44,14 @@ async def stream_response(client: AsyncClient, prompt: str, sources: list, model
         try:
             buffer = ""
 
-            async for fragment in await client.generate(
+            async for fragment in await client.chat(
                 model=curr_llm_gen_model,
-                prompt=prompt,
+                messages=messages,
                 stream=True,
                 options={"num_ctx": 4096},
             ):
-                if "response" in fragment:
-                    buffer += fragment["response"]
+                if "message" in fragment and "content" in fragment["message"]:
+                    buffer += fragment["message"]["content"]
                     if len(buffer) >= 20:
                         yield buffer
                         buffer = ""
@@ -64,8 +65,8 @@ async def stream_response(client: AsyncClient, prompt: str, sources: list, model
 
 async def execute(request: QueryRequest, client: AsyncClient, table) -> StreamingResponse:
     if await is_conversational(request.question, client):
-        prompt = PROMPT_CONVERSATIONAL.format(question=request.question)
-        return await stream_response(client, prompt, sources=[], model=config.LLM_GENERATION_MODELS["auto"])
+        messages = [{"role": "system", "content": PROMPT_CONVERSATIONAL}, {"role": "user", "content": request.question}]
+        return await stream_response(client, messages, sources=[], model=config.LLM_GENERATION_MODELS["auto"])
 
     final_top_k = get_final_top_k(request.top_k, request.question)
     active = PERSONAS.get(request.category, PERSONAS["auto"])
@@ -89,7 +90,14 @@ async def execute(request: QueryRequest, client: AsyncClient, table) -> Streamin
     context = "\n---\n".join([f"Source: {r['file_path']}\n{r['text']}" for r in results])
 
     behavior = PROMPT_BEHAVIOR_STRICT if request.mode == "strict" else PROMPT_BEHAVIOR_HYBRID
-    prompt = construct_audit_prompt(active, behavior, sources, context, request.question)
+    
+    system_content = construct_system_message(active, behavior)
+    user_content = construct_user_message(sources, context, request.question)
+    
+    messages = [
+        {"role": "system", "content": system_content},
+        {"role": "user", "content": user_content}
+    ]
 
     llm_model = config.LLM_GENERATION_MODELS.get(request.category, config.LLM_GENERATION_MODELS["auto"])
-    return await stream_response(client, prompt, sources, model=llm_model)
+    return await stream_response(client, messages, sources, model=llm_model)
